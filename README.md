@@ -44,7 +44,7 @@ ssh qnap-yuuya 'docker logs pxe-dnsmasq --tail 20'               # 起動時の 
 - UEFI 設定で Network Boot（IPv4 PXE）を有効化、**内蔵 Ethernet** に LAN ケーブル（ドックの USB NIC は
   ファームウェアが PXE 非対応のことがある）
 - 起動時に F12 → PXE → GRUB メニューで「自動インストール」を選ぶ
-- **ディスクは全消去される**。事前に Pika Backup で `~` を NAS に取ること
+- **ディスクは全消去される**。事前に `backup-check` が OK（Pika の最終成功が 24h 以内）であることを確認し、Pika で「今すぐバックアップ」を 1 回
 - 途中で対話入力が 2 つ: LUKS パスフレーズ、初回起動のユーザー作成（Plasma Setup）
 - ログイン後、案内に従って `curl -fsSL https://raw.githubusercontent.com/nagata1634/dotfiles/main/install.sh | bash`
 
