@@ -1,0 +1,15 @@
+# dnsmasq: proxyDHCP + TFTP のみ（DNS は無効、通常の DHCP はルータのまま）
+port=0
+log-dhcp
+@IFACE_LINE@
+# proxy: 既存の DHCP サーバーが配る IP はそのままに、PXE のブート情報だけ追加する
+dhcp-range=@LAN_SUBNET@,proxy
+enable-tftp
+tftp-root=/tftp
+# クライアントのアーキテクチャで振り分け（UEFI x86_64 = 7 / 9、BIOS = 0）
+dhcp-match=set:efi-x86_64,option:client-arch,7
+dhcp-match=set:efi-x86_64,option:client-arch,9
+dhcp-match=set:bios,option:client-arch,0
+pxe-service=tag:efi-x86_64,x86-64_efi,"Fedora Kinoite (UEFI)",BOOTX64.EFI
+pxe-service=tag:bios,x86PC,"BIOS is not supported; use UEFI",
+dhcp-boot=tag:efi-x86_64,BOOTX64.EFI,,@NAS_HOST@

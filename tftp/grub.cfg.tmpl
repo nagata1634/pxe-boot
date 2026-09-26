@@ -1,0 +1,15 @@
+# UEFI PXE 用 GRUB メニュー（tftp ルートに grub.cfg として置く。setup-iso.sh が @NAS_HOST@ を置換）
+set default=1
+set timeout=15
+
+menuentry 'Fedora Kinoite 44 — 自動インストール (Kickstart, ディスク全消去!)' {
+    linuxefi /kinoite/vmlinuz inst.stage2=http://@NAS_HOST@/kinoite inst.ks=http://@NAS_HOST@/ks/fedora-kinoite.ks ip=dhcp quiet
+    initrdefi /kinoite/initrd.img
+}
+menuentry 'Fedora Kinoite 44 — 手動インストール (Kickstart なし)' {
+    linuxefi /kinoite/vmlinuz inst.stage2=http://@NAS_HOST@/kinoite ip=dhcp
+    initrdefi /kinoite/initrd.img
+}
+menuentry 'ローカルディスクから起動' {
+    exit
+}

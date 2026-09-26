@@ -1,0 +1,9 @@
+.env
+http/kinoite/
+http/ks/
+tftp/BOOTX64.EFI
+tftp/grubx64.efi
+tftp/grub.cfg
+tftp/kinoite/
+ks/
+*.iso
