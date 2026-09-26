@@ -15,15 +15,12 @@ services:
     volumes:
       - ./tftp:/tftp:ro
       - ./dnsmasq.conf.tmpl:/etc/dnsmasq.conf.tmpl:ro
+      - ./dnsmasq-entrypoint.sh:/entrypoint.sh:ro
     environment:
       - LAN_SUBNET=${LAN_SUBNET:?}
       - NAS_HOST=${NAS_HOST:?}
       - PXE_IFACE=${PXE_IFACE:-}
-    command: >
-      sh -c "apk add --no-cache dnsmasq >/dev/null &&
-             sed -e \"s|@LAN_SUBNET@|$$LAN_SUBNET|g\" -e \"s|@NAS_HOST@|$$NAS_HOST|g\"
-                 -e \"s|@IFACE_LINE@|$${PXE_IFACE:+interface=$$PXE_IFACE}|\" /etc/dnsmasq.conf.tmpl > /etc/dnsmasq.conf &&
-             exec dnsmasq --no-daemon --conf-file=/etc/dnsmasq.conf --log-dhcp"
+    command: ["sh", "/entrypoint.sh"]
   http:
     image: docker.io/library/nginx:1.27-alpine
     container_name: pxe-http
