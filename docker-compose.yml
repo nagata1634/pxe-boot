@@ -14,7 +14,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./tftp:/tftp:ro
-      - ./dnsmasq.conf.tmpl:/etc/dnsmasq.conf.tmpl:ro
       - ./dnsmasq-entrypoint.sh:/entrypoint.sh:ro
     environment:
       - LAN_SUBNET=${LAN_SUBNET:?}
