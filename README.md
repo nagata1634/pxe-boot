@@ -32,7 +32,8 @@ ssh qnap-yuuya 'export DOCKER_CONFIG=/tmp/.docker-pxe; cd /share/CACHEDEV1_DATA/
 ```sh
 curl -sI http://NAS_HOST/ks/fedora-kinoite.ks | head -1        # 200
 curl -s  http://NAS_HOST/kinoite/images/install.img -o /dev/null -w '%{http_code}\n'
-tftp NAS_HOST -c get BOOTX64.EFI                                 # 取れれば OK（tftp-hpa 等）
+# Fedora の curl は tftp 非対応。コンテナ内で自己取得するのが早い:
+ssh qnap-yuuya '/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker exec pxe-dnsmasq sh -c "apk add -q curl; curl -s tftp://127.0.0.1/grub.cfg | head -3"'
 ssh qnap-yuuya '/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker logs pxe-dnsmasq --tail 20'   # proxyDHCP 応答
 ```
 
