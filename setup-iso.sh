@@ -3,7 +3,7 @@
 # （QNAP は BusyBox で loop mount や ostree が無いため、展開は 7z で PC 上で行う）。
 #   ./setup-iso.sh <Kinoite ISO> [<Kickstart>]
 # 生成物:
-#   http/kinoite/            ISO 全体（images/install.img = inst.stage2、ostree/repo = ostreesetup の url）
+#   http/kinoite/            ISO 全体（images/install.img = inst.stage2。ostree repo はこの中: file:///ostree/repo）
 #   tftp/BOOTX64.EFI, grubx64.efi   ISO の EFI/BOOT から（shim + grub、Secure Boot 可）
 #   tftp/kinoite/vmlinuz, initrd.img、tftp/grub.cfg（@NAS_HOST@ 置換）
 #   http/ks/fedora-kinoite.ks（NAS_HOST 置換）
@@ -30,8 +30,9 @@ cp "$HERE/http/kinoite/EFI/BOOT/BOOTX64.EFI" "$HERE/http/kinoite/EFI/BOOT/grubx6
 cp "$HERE/http/kinoite/images/pxeboot/vmlinuz" "$HERE/http/kinoite/images/pxeboot/initrd.img" "$HERE/tftp/kinoite/"
 sed -e "s|@NAS_HOST@|$NAS_HOST|g" "$HERE/tftp/grub.cfg.tmpl" > "$HERE/tftp/grub.cfg"
 sed -e "s|NAS_HOST|$NAS_HOST|g" "$KS" > "$HERE/http/ks/fedora-kinoite.ks"
-REF="$(ls "$HERE/http/kinoite/ostree/repo/refs/heads/fedora/"*/x86_64/ 2>/dev/null | head -1 || true)"
-echo ":: ostree ref: ${REF:-不明}  ← Kickstart の ostreesetup --ref と一致しているか確認"
+# ostree repo は ISO ルートではなく images/install.img(stage2 の rootfs)の中にある。ref だけ読み取る。
+REF="$(7z l "$HERE/http/kinoite/images/install.img" 2>/dev/null | awk '{print $NF}' | grep -E "^ostree/repo/refs/heads/.+/x86_64/[a-z]+$" | sed 's|^ostree/repo/refs/heads/||' | head -1 || true)"
+echo ":: ostree ref: ${REF:-不明}  ← Kickstart の ostreesetup --ref と一致しているか確認（url は file:///ostree/repo）"
 grep -n "ostreesetup" "$HERE/http/ks/fedora-kinoite.ks" | head -1
 
 echo ":: NAS へ同期: $NAS_SSH:$NAS_DIR"

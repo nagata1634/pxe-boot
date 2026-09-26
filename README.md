@@ -7,7 +7,7 @@ QNAP NAS（Container Station / docker compose）上で動く最小構成の PXE 
 クライアント (UEFI, 内蔵 NIC)            NAS (network_mode: host)
   DHCP discover ──────────────▶ ルータ(IP を配る) + dnsmasq(proxy: "BOOTX64.EFI を tftp で")
   tftp BOOTX64.EFI/grubx64.efi/grub.cfg ─▶ dnsmasq(tftp-root=./tftp)
-  http /kinoite (stage2, ostree repo), /ks/fedora-kinoite.ks ─▶ nginx(./http)
+  http /kinoite (stage2 = install.img、その中に ostree repo), /ks/fedora-kinoite.ks ─▶ nginx(./http)
 ```
 
 Kickstart 本体は [dotfiles](https://github.com/nagata1634/dotfiles) の `bootstrap/fedora-kinoite.ks`。
@@ -51,4 +51,6 @@ ssh qnap-yuuya '/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker logs px
 - `inst.stage2` は展開した ISO ディレクトリ（`images/install.img` を含む）を指す。ISO ファイルそのものを
   指す `inst.repo=http://…/x.iso` も可だが、展開しておく方が速い
 - ISO を更新したら `setup-iso.sh` を再実行し、Kickstart の `ostreesetup --ref` を ISO の ref に合わせる
+- Kinoite の ISO は ostree repo を ISO ルートではなく `images/install.img`（stage2）の中に持つ。Kickstart の
+  `ostreesetup` は ISO 同梱の既定と同じ `--url=file:///ostree/repo`。`7z` で ISO を展開しても repo は出てこない（正常）
 - ISO（数 GB）と展開物は git 管理外（`.gitignore`）
