@@ -14,20 +14,17 @@ Kickstart 本体は [dotfiles](https://github.com/nagata1634/dotfiles) の `boot
 OS 層はここで、ユーザー環境（設定・Flatpak・KDE 設定のスナップショット）は初回ログイン後の
 `install.sh` が作る（2 層）。
 
-## 準備（NAS 上）
+## 準備（PC 側で実行。展開と同期は setup-iso.sh がやる）
+
+QNAP は BusyBox で loop mount や ostree が無いため、ISO の展開は PC で行い rsync で NAS へ送る。
 
 ```sh
-# 1. 配置（claude-hub と同じ場所の流儀）
-ssh qnap-yuuya 'mkdir -p /share/CACHEDEV1_DATA/Container/pxe-boot'
-scp -r docker-compose.yml dnsmasq.conf.tmpl nginx.conf setup-iso.sh tftp .env.example qnap-yuuya:/share/CACHEDEV1_DATA/Container/pxe-boot/
-# 2. .env（NAS の IP、サブネット）
-ssh qnap-yuuya 'cd /share/CACHEDEV1_DATA/Container/pxe-boot && cp -n .env.example .env && vi .env'
-# 3. Kickstart と ISO を置いて展開
-scp ~/.dotfiles/bootstrap/fedora-kinoite.ks qnap-yuuya:/share/CACHEDEV1_DATA/Container/pxe-boot/ks/
-scp ~/Downloads/Fedora-Kinoite-ostree-x86_64-44-*.iso qnap-yuuya:/share/CACHEDEV1_DATA/Container/pxe-boot/
-ssh qnap-yuuya 'cd /share/CACHEDEV1_DATA/Container/pxe-boot && ./setup-iso.sh Fedora-Kinoite-ostree-x86_64-44-*.iso'
-# 4. 起動（DOCKER_CONFIG は QNAP 固有の罠対策）
-ssh qnap-yuuya 'export DOCKER_CONFIG=/tmp/.docker-pxe; cd /share/CACHEDEV1_DATA/Container/pxe-boot && docker compose up -d'
+cp -n .env.example .env && vi .env                       # NAS_HOST / LAN_SUBNET / PXE_IFACE / NAS_SSH / NAS_DIR
+curl -LO https://download.fedoraproject.org/pub/fedora/linux/releases/44/Kinoite/x86_64/iso/Fedora-Kinoite-ostree-x86_64-44-1.7.iso
+curl -LO https://download.fedoraproject.org/pub/fedora/linux/releases/44/Kinoite/x86_64/iso/Fedora-Kinoite-44-1.7-x86_64-CHECKSUM
+./setup-iso.sh ~/Downloads/Fedora-Kinoite-ostree-x86_64-44-1.7.iso   # 検証→展開→Kickstart 置換→NAS へ同期
+# 起動（QNAP の docker は PATH に無いのでフルパス。DOCKER_CONFIG は QNAP 固有の罠対策）
+ssh qnap-yuuya 'export DOCKER_CONFIG=/tmp/.docker-pxe; cd /share/CACHEDEV1_DATA/Container/pxe-boot && /share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker compose up -d'
 ```
 
 ## 動作確認（クライアント側から）
@@ -36,7 +33,7 @@ ssh qnap-yuuya 'export DOCKER_CONFIG=/tmp/.docker-pxe; cd /share/CACHEDEV1_DATA/
 curl -sI http://NAS_HOST/ks/fedora-kinoite.ks | head -1        # 200
 curl -s  http://NAS_HOST/kinoite/images/install.img -o /dev/null -w '%{http_code}\n'
 tftp NAS_HOST -c get BOOTX64.EFI                                 # 取れれば OK（tftp-hpa 等）
-ssh qnap-yuuya 'docker logs pxe-dnsmasq --tail 20'               # 起動時の proxyDHCP 応答が出る
+ssh qnap-yuuya '/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker logs pxe-dnsmasq --tail 20'   # proxyDHCP 応答
 ```
 
 ## クライアント（ThinkPad）
