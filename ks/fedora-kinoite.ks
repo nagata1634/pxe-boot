@@ -61,9 +61,9 @@ systemctl enable kinoite-firstboot.service
 
 # 初回セットアップウィザードは使う（ユーザー作成）。終わったらウィザード側が /etc/plasma-setup-done を置く。
 
-# 初回ログイン時に dotfiles（~/ の層）の適用を促す
+# 初回ログイン時に dotfiles（~/ の層）の適用を促す（~/.dotfiles が clone されたら消える）
 cat > /etc/profile.d/zz-dotfiles-hint.sh <<'HINT'
-if [ -n "${BASH_VERSION:-}" ] && [ ! -L "$HOME/.profile" ]; then
+if [ -n "${BASH_VERSION:-}" ] && [ ! -d "$HOME/.dotfiles" ]; then
     printf '\n\033[1;34m::\033[0m dotfiles が未適用です。次を実行してください:\n'
     printf '   curl -fsSL https://raw.githubusercontent.com/nagata1634/dotfiles/main/install.sh | bash\n\n'
 fi
