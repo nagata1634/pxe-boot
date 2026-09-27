@@ -7,7 +7,6 @@ com.brave.Browser                    # ブラウザ（/run/udev:ro = WebAuthn/FI
 com.github.flxzt.rnote               # 手書きノート
 com.yubico.yubioath                  # Yubico Authenticator
 io.github.celluloid_player.Celluloid # 動画（VA-API は Flatpak の拡張で完結）
-io.github.kolunmi.Bazaar             # Flathub ストア
 io.podman_desktop.PodmanDesktop      # コンテナ管理 GUI
 md.obsidian.Obsidian                 # ノート（日本語豆腐の回避設定は home/.var/app/… に）
 net.epson.epsonscan2                 # スキャナ
