@@ -6,12 +6,12 @@
 #   http/kinoite/            ISO 全体（images/install.img = inst.stage2。ostree repo はこの中: file:///ostree/repo）
 #   tftp/BOOTX64.EFI, grubx64.efi   ISO の EFI/BOOT から（shim + grub、Secure Boot 可）
 #   tftp/kinoite/vmlinuz, initrd.img、tftp/grub.cfg（@NAS_HOST@ 置換）
-#   http/ks/fedora-kinoite.ks（NAS_HOST 置換）
+#   http/ks/fedora-kinoite.ks（NAS_HOST 置換）、http/root/（%post が取る root 層）
 # .env の NAS_HOST / NAS_SSH / NAS_DIR を使う。
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ISO="${1:?usage: $0 <Kinoite ISO> [<Kickstart>]}"
-KS="${2:-$HOME/.dotfiles/bootstrap/fedora-kinoite.ks}"
+KS="${2:-$HERE/ks/fedora-kinoite.ks}"
 [ -f "$HERE/.env" ] && . "$HERE/.env"
 : "${NAS_HOST:?.env に NAS_HOST を書いてください}"
 NAS_SSH="${NAS_SSH:-qnap-yuuya}"
@@ -23,13 +23,14 @@ if [ -f "$ISO.sha256" ] || ls "$(dirname "$ISO")"/*CHECKSUM >/dev/null 2>&1; the
   ( cd "$(dirname "$ISO")" && grep -h "$(basename "$ISO")" ./*CHECKSUM 2>/dev/null | sed -E 's/^SHA256 \((.*)\) = (.*)$/\2  \1/' | sha256sum -c --quiet ) && echo "   OK"
 fi
 
-mkdir -p "$HERE/http/kinoite" "$HERE/tftp/kinoite" "$HERE/http/ks"
+mkdir -p "$HERE/http/kinoite" "$HERE/tftp/kinoite" "$HERE/http/ks" "$HERE/http/root"
 echo ":: ISO を展開（7z、数分）"
 7z x -y -o"$HERE/http/kinoite" "$ISO" >/dev/null
 cp "$HERE/http/kinoite/EFI/BOOT/BOOTX64.EFI" "$HERE/http/kinoite/EFI/BOOT/grubx64.efi" "$HERE/tftp/"
 cp "$HERE/http/kinoite/images/pxeboot/vmlinuz" "$HERE/http/kinoite/images/pxeboot/initrd.img" "$HERE/tftp/kinoite/"
 sed -e "s|@NAS_HOST@|$NAS_HOST|g" "$HERE/tftp/grub.cfg.tmpl" > "$HERE/tftp/grub.cfg"
 sed -e "s|NAS_HOST|$NAS_HOST|g" "$KS" > "$HERE/http/ks/fedora-kinoite.ks"
+rsync -a --delete "$HERE/root/" "$HERE/http/root/"   # %post が curl で取る root 層(authselect, usb-wakeup, firstboot, packages/flatpaks)
 # ostree repo は ISO ルートではなく images/install.img(stage2 の rootfs)の中にある。ref だけ読み取る。
 REF="$(7z l "$HERE/http/kinoite/images/install.img" 2>/dev/null | awk '{print $NF}' | grep -E "^ostree/repo/refs/heads/.+/x86_64/[a-z]+$" | sed 's|^ostree/repo/refs/heads/||' | head -1 || true)"
 echo ":: ostree ref: ${REF:-不明}  ← Kickstart の ostreesetup --ref と一致しているか確認（url は file:///ostree/repo）"

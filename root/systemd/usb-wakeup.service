@@ -1,0 +1,15 @@
+[Unit]
+Description=サスペンド前後で USB の復帰源を組み直す
+# sleep.target より前に ExecStart、sleep.target が停止した後（＝復帰時）に ExecStop。
+# StopWhenUnneeded が無いと復帰しても停止されず ExecStop が走らない。
+Before=sleep.target
+StopWhenUnneeded=yes
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/usb-wakeup.sh pre suspend
+ExecStop=/usr/local/bin/usb-wakeup.sh post suspend
+
+[Install]
+WantedBy=sleep.target

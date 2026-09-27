@@ -1,0 +1,36 @@
+# rpm-ostree でレイヤリングする「ベースイメージに無い」追加パッケージ。
+#
+# ベースは Fedora Kinoite（KDE Plasma / Wayland）。
+# Konsole / Dolphin / Discover / Firefox / plasmalogin(Plasma Login Manager) / plasma-* /
+# fcitx5-qt6 / fcitx5-gtk* / ddcutil / fuse-sshfs はベースに含まれるためここには書かない。
+# 方針は「レイヤは最小限」。ここに書くのは
+#   rpm-ostree status --booted の requested-packages に実際に載っているものだけ。
+# （ベース同梱パッケージの削除は rpm-ostree override remove が必要でアップデート時に
+#   リスクがあるため、使わないものは NoDisplay で隠す方針。CLAUDE.md 参照）
+#
+# 1行1パッケージ。'#' 以降と空行は無視。
+#
+# 【2026-09-27 レイヤ最小化 12 → 7】外した: greetd / greetd-selinux / tuigreet（→ plasmalogin）、
+#   fcitx5-autostart（KWin が fcitx5 を起動する）、podman-compose（→ install.sh の
+#   install_compose が ~/.local/bin/docker-compose を置く）。判断表は CLAUDE.md。
+
+# --- 日本語入力 ---
+# DE を変えたら必ず最初に実機で日本語入力を確認すること（特に KRunner）。
+# fcitx5 本体はベースに無い（libs/gtk/qt だけがベース）。起動は KWin（kwinrc [Wayland] InputMethod）。
+fcitx5                # IME 本体
+fcitx5-mozc           # Mozc 変換エンジン
+
+# --- 認証 ---
+# ログインは plasmalogin（ベース同梱）。PAM は authselect custom/yuya-auth（u2f→指紋→PW）。
+pam-u2f               # Yubikey などの U2F 認証を PAM に追加
+pamu2fcfg             # 上記の鍵登録ツール
+
+# --- ハードウェア ---
+intel-media-driver    # Intel GPU のハードウェアエンコード/デコード（Fedora 版はエンコード機能が少ない）
+                      # ※ RPM Fusion (free) 由来。未導入の環境では先にリポジトリを追加すること
+                      #   rpm-ostree install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+                      #   ベース版 libva-intel-media-driver は override remove 済み
+
+# --- 開発 / ツール ---
+code                  # Visual Studio Code（Flatpak 版は podman/DevContainer 連携にラッパが要るため層で持つ）
+neovim                # エディタ（EDITOR=nvim）

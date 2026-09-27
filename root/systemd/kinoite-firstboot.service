@@ -1,0 +1,14 @@
+[Unit]
+Description=Kinoite 初回起動: RPM Fusion・rpm-ostree レイヤ・Flatpak・docker-compose を導入して再起動
+ConditionPathExists=!/var/lib/kinoite-firstboot.done
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/kinoite-firstboot.sh
+StandardOutput=journal+console
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

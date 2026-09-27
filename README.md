@@ -10,9 +10,22 @@ QNAP NAS（Container Station / docker compose）上で動く最小構成の PXE 
   http /kinoite (stage2 = install.img、その中に ostree repo), /ks/fedora-kinoite.ks ─▶ nginx(./http)
 ```
 
-Kickstart 本体は [dotfiles](https://github.com/nagata1634/dotfiles) の `bootstrap/fedora-kinoite.ks`。
-OS 層はここで、ユーザー環境（設定・Flatpak・KDE 設定のスナップショット）は初回ログイン後の
-`install.sh` が作る（2 層）。
+## 担当分け（2 層）
+
+| 層 | 場所 | 内容 |
+|---|---|---|
+| OS + root 層 | **このリポジトリ**（`ks/`、`root/`） | Kickstart、authselect（Yubikey→指紋→PW）、usb-wakeup、rpm-ostree レイヤ（`root/packages.txt`）、Flatpak（`root/flatpaks.txt`）、docker-compose |
+| ~/ の層 | [dotfiles](https://github.com/nagata1634/dotfiles) `install.sh` | symlink、KDE 設定スナップショット、テーマ、KDE 拡張 |
+
+Kickstart の `%post` はイメージ deploy 直後の chroot で **rpm-ostree レイヤも flatpak も使えない**ので、
+`%post` は `http://NAS/root/` から `/etc`・`/usr/local` にファイルを置いて unit を有効化するまで。
+レイヤ・Flatpak・docker-compose は初回起動の `kinoite-firstboot.service`（oneshot）が入れて再起動する。
+
+```
+PXE → Kickstart（%post: authselect, usb-wakeup, firstboot unit）→ 再起動
+  → kinoite-firstboot.service: RPM Fusion → rpm-ostree レイヤ → Flatpak → docker-compose → 再起動
+  → Plasma Setup（ユーザー作成）→ ログイン → dotfiles/install.sh（~/ の層）→ ログアウト/ログイン
+```
 
 ## 準備（PC 側で実行。展開と同期は setup-iso.sh がやる）
 
@@ -22,7 +35,9 @@ QNAP は BusyBox で loop mount や ostree が無いため、ISO の展開は PC
 cp -n .env.example .env && vi .env                       # NAS_HOST / LAN_SUBNET / PXE_IFACE / NAS_SSH / NAS_DIR
 curl -LO https://download.fedoraproject.org/pub/fedora/linux/releases/44/Kinoite/x86_64/iso/Fedora-Kinoite-ostree-x86_64-44-1.7.iso
 curl -LO https://download.fedoraproject.org/pub/fedora/linux/releases/44/Kinoite/x86_64/iso/Fedora-Kinoite-44-1.7-x86_64-CHECKSUM
-./setup-iso.sh ~/Downloads/Fedora-Kinoite-ostree-x86_64-44-1.7.iso   # 検証→展開→Kickstart 置換→NAS へ同期
+./setup-iso.sh ~/Downloads/Fedora-Kinoite-ostree-x86_64-44-1.7.iso   # 検証→展開→Kickstart 置換→root/ 同期→NAS へ同期
+# root/ や ks/ だけ変えたとき（ISO 再展開は不要）:
+./sync-root.sh
 # 起動（QNAP の docker は PATH に無いのでフルパス。DOCKER_CONFIG は QNAP 固有の罠対策）
 ssh qnap-yuuya 'export DOCKER_CONFIG=/tmp/.docker-pxe; cd /share/CACHEDEV1_DATA/Container/pxe-boot && /share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker compose up -d'
 ```

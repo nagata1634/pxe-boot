@@ -1,0 +1,18 @@
+# Flatpak アプリ（flathub、system 側に導入）。1 行 1 ID。'#' 以降と空行は無視。
+# 方針: 「環境は標準のまま、アプリは Flatpak」。ここに無いものは再現対象外。
+# 追加したら install.sh を流す（冪等）。override は home/.local/share/flatpak/overrides/ に置く。
+best.ellie.StartupConfiguration      # 自動起動アプリ・スクリプトの確認/設定
+com.bitwarden.desktop                # パスワード管理（USE_X11=false の override あり）
+com.brave.Browser                    # ブラウザ（/run/udev:ro = WebAuthn/FIDO 用 override あり）
+com.github.flxzt.rnote               # 手書きノート
+com.yubico.yubioath                  # Yubico Authenticator
+io.github.celluloid_player.Celluloid # 動画（VA-API は Flatpak の拡張で完結）
+io.github.kolunmi.Bazaar             # Flathub ストア
+io.podman_desktop.PodmanDesktop      # コンテナ管理 GUI
+md.obsidian.Obsidian                 # ノート（日本語豆腐の回避設定は home/.var/app/… に）
+net.epson.epsonscan2                 # スキャナ
+org.gnome.Evince                     # PDF
+org.gnome.Lollypop                   # 音楽（NAS の Navidrome/ytmusic と連携）
+org.gnome.Shotwell                   # 写真
+org.gnome.Snapshot                   # カメラ
+org.gnome.World.PikaBackup           # バックアップ（NAS へ）
