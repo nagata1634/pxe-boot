@@ -61,6 +61,19 @@ ssh qnap-yuuya '/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker logs px
 - 途中で対話入力が 2 つ: LUKS パスフレーズ、初回起動のユーザー作成（Plasma Setup）
 - ログイン後、案内に従って `curl -fsSL https://raw.githubusercontent.com/nagata1634/dotfiles/main/install.sh | bash`
 
+
+## 本番で止まったときの逃げ道（テスト機が無いため未検証の部分）
+
+| 段階 | 止まりうる点 | 対処 |
+|---|---|---|
+| PXE 起動 | UEFI が内蔵 NIC から PXE しない／proxyDHCP を拾わない | USB メモリに ISO を書いて起動し、GRUB の `linux` 行に `inst.ks=http://NAS_HOST/ks/fedora-kinoite.ks` を追記（以降は同じ経路） |
+| `%post` | NAS に curl が届かない、`authselect select` / `systemctl enable` が chroot で失敗 | `--erroronfail` で止まる。`Ctrl+Alt+F2` で `/tmp/ks-script-*.log`。最悪は OS だけ入れ、ログイン後に `root/` の内容を手で置く |
+| `kinoite-firstboot` | RPM Fusion ミラー不調、`rpm-ostree override` の引数 | `journalctl -u kinoite-firstboot`。OS は起動するので `/usr/local/bin/kinoite-firstboot.sh` を手で再実行 |
+| Plasma Setup | ウィザードが出続ける | root で `touch /etc/plasma-setup-done` |
+| データ復元 | Pika に repo が見えない | `ssh-keygen -K` → `systemctl --user start qnap-tpbk` → Pika「既存のリポジトリを使う」で `~/mnt/qnap-tpbk/backup-fedora-yuuya`、パスフレーズは Bitwarden |
+
+実行する日の手順: (1) Pika の最終成功を確認 (2) `./sync-root.sh` と dotfiles の push (3) Bitwarden に borg パスフレーズ・`~/.ssh/yuuya-nas`・FIDO2 PIN・LUKS パスフレーズ (4) Yubikey 2 本と有線 LAN（内蔵ポート）
+
 ## 注意
 
 - Secure Boot は Fedora の shim（`BOOTX64.EFI`）経由なので有効のままで可
