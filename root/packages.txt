@@ -34,3 +34,9 @@ intel-media-driver    # Intel GPU のハードウェアエンコード/デコー
 # --- 開発 / ツール ---
 code                  # Visual Studio Code（Flatpak 版は podman/DevContainer 連携にラッパが要るため層で持つ）
 neovim                # エディタ（EDITOR=nvim）
+
+# --- シェル ---
+# ログインシェルは bash のまま（KDE の起動・環境変数・VT のロケール対策が bash 前提）。
+# 対話時だけ ~/.bashrc.d/99-fish.sh が fish に切り替える。理由は dotfiles の CLAUDE.md。
+fish                  # 対話シェル（ヒアドキュメントが要るときは `bash` に入る）
+fzf                   # あいまい検索（fish の Ctrl+R / Ctrl+T / Alt+C）
