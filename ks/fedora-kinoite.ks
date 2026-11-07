@@ -64,8 +64,8 @@ systemctl enable kinoite-firstboot.service
 # 初回ログイン時に dotfiles（~/ の層）の適用を促す（~/.dotfiles が clone されたら消える）
 cat > /etc/profile.d/zz-dotfiles-hint.sh <<'HINT'
 if [ -n "${BASH_VERSION:-}" ] && [ ! -d "$HOME/.dotfiles" ]; then
-    printf '\n\033[1;34m::\033[0m dotfiles が未適用です。次を実行してください:\n'
-    printf '   （dotfiles は非公開）ssh-keygen -t ed25519 -f ~/.ssh/github して公開鍵を GitHub に登録し、\n   git clone git@github.com:nagata1634/dotfiles.git ~/.dotfiles && ~/.dotfiles/install.sh\n\n'
+    printf '\n\033[1;34m::\033[0m dotfiles が未適用です:\n'
+    printf '   個人の設定（dotfiles）は自分で入れる（手順は dotfiles の install.sh の先頭）。入れたらこの案内は消える\n\n'
 fi
 HINT
 %end

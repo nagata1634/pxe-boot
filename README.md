@@ -59,7 +59,7 @@ ssh qnap-yuuya '/share/CACHEDEV1_DATA/.qpkg/container-station/bin/docker logs px
 - 起動時に F12 → PXE → GRUB メニューで「自動インストール」を選ぶ
 - **ディスクは全消去される**。事前に `backup-check` が OK（Pika の最終成功が 24h 以内）であることを確認し、Pika で「今すぐバックアップ」を 1 回
 - 途中で対話入力が 2 つ: LUKS パスフレーズ、初回起動のユーザー作成（Plasma Setup）
-- ログイン後、案内に従って `ssh-keygen -t ed25519 -f ~/.ssh/github` → 公開鍵を GitHub に登録 → `git clone git@github.com:nagata1634/dotfiles.git ~/.dotfiles && ~/.dotfiles/install.sh`（dotfiles は 2026-11-07 から非公開）
+- ログイン後、個人の設定（dotfiles・非公開）は自分で入れる。PXE が入れるのはシステム側の基本形だけ（2026-11-07 本人「dotfiles は個人設定だから自分で管理する」）
 
 
 ## 本番で止まったときの逃げ道（テスト機が無いため未検証の部分）
