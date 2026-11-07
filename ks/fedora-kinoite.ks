@@ -65,7 +65,7 @@ systemctl enable kinoite-firstboot.service
 cat > /etc/profile.d/zz-dotfiles-hint.sh <<'HINT'
 if [ -n "${BASH_VERSION:-}" ] && [ ! -d "$HOME/.dotfiles" ]; then
     printf '\n\033[1;34m::\033[0m dotfiles が未適用です。次を実行してください:\n'
-    printf '   （dotfiles は非公開）ssh-keygen -t ed25519 -f ~/.ssh/github して公開鍵を GitHub に登録し、\n   git clone git@github.com:nagata1634/dotfiles.git ~/.dotfiles \&\& ~/.dotfiles/install.sh\n\n'
+    printf '   （dotfiles は非公開）ssh-keygen -t ed25519 -f ~/.ssh/github して公開鍵を GitHub に登録し、\n   git clone git@github.com:nagata1634/dotfiles.git ~/.dotfiles && ~/.dotfiles/install.sh\n\n'
 fi
 HINT
 %end
